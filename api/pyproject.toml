@@ -2,6 +2,7 @@
 name = "splitser-api"
 version = "0.1.0"
 description = "Unofficial Splitser / WieBetaaltWat web API client"
+license = "MIT"
 authors = [
     { name = "Jeroen Meijer", email = "jeroenfkmeijer@gmail.com" }
 ]
