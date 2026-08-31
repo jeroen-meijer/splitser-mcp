@@ -208,10 +208,10 @@ async def splitser_update_expense(
     payed_on: str,
     amount_euros: str | float | None = None,
     amount_fractional: int | None = None,
-    shares_json: str | None = None,
+    shares_json: str | list[dict[str, Any]] | None = None,
     currency: str = "EUR",
 ) -> str:
-    """Update an expense. shares_json is a JSON array of Splitser share objects."""
+    """Update an expense. shares_json is a JSON array (string or list) of share objects."""
 
     async def _run(client: SplitserClient) -> str:
         fractional = amount_fractional
@@ -219,9 +219,12 @@ async def splitser_update_expense(
             if amount_euros is None:
                 raise ValueError("Provide amount_euros or amount_fractional")
             fractional = euros_to_fractional(amount_euros)
-        if not shares_json:
+        if shares_json is None:
             raise ValueError("shares_json is required for updates")
-        shares = json.loads(shares_json)
+        if isinstance(shares_json, str):
+            shares = json.loads(shares_json)
+        else:
+            shares = shares_json
         return _pretty_json(
             await client.update_expense(
                 expense_id,

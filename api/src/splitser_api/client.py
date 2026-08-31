@@ -50,6 +50,9 @@ class SplitserClient:
         return {
             "User-Agent": self.config.user_agent,
             "Accept": "application/json",
+            "Accept-Language": self.config.lang,
+            "Accept-Version": self.config.accept_version,
+            "X-App-React": "true",
             "Origin": self.config.base_url,
         }
 

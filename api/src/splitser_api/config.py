@@ -28,6 +28,7 @@ class SplitserConfig:
     password: str = ""
     cookie_file: Path = field(default_factory=default_cookie_file)
     lang: str = "en"
+    accept_version: str = "11"
     timeout_s: float = 30.0
     user_agent: str = DEFAULT_USER_AGENT
 
@@ -41,6 +42,7 @@ class SplitserConfig:
             password=os.environ.get("SPLITSER_PASSWORD", ""),
             cookie_file=Path(cookie_file) if cookie_file else default_cookie_file(),
             lang=os.environ.get("SPLITSER_LANG", "en"),
+            accept_version=os.environ.get("SPLITSER_ACCEPT_VERSION", "11"),
             timeout_s=float(os.environ.get("SPLITSER_TIMEOUT_SECONDS", "30")),
             user_agent=os.environ.get("SPLITSER_USER_AGENT", DEFAULT_USER_AGENT),
         )
