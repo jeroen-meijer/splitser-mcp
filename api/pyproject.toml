@@ -1,0 +1,38 @@
+[project]
+name = "splitser-api"
+version = "0.1.0"
+description = "Unofficial Splitser / WieBetaaltWat web API client"
+authors = [
+    { name = "Jeroen Meijer", email = "jeroenfkmeijer@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "httpx>=0.28.1",
+    "pydantic>=2.12.5",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.11,<0.13"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "pytest-asyncio>=1.3.0",
+    "ruff>=0.15.7",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+exclude = ["**/__pycache__", "**/*.pyc", "**/node_modules", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ARG", "SIM"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: marks tests that hit the live Splitser API",
+]
