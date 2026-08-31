@@ -93,7 +93,8 @@ Easy to get wrong. Install and env detail: [api/README.md](api/README.md).
 - Send `Accept-Version` (default `11`) and `X-App-React: true` on requests.
 - WieBetaaltWat: `SPLITSER_BASE_URL=https://app.wiebetaaltwat.nl`, `SPLITSER_LANG=nl`.
 - Create expense: client-generated UUID; POST body uses `shares_attributes`.
-- Update expense: PUT body uses `shares` (not `shares_attributes`). MCP `shares_json` may be a JSON string or a list.
+- Update expense: PUT body uses `shares` (not `shares_attributes`). MCP `shares` / `shares_json` may be a JSON string or a list.
+- Share meta: `exact` (fixed amount, multiplier 0), `factor` (weight), `percent`. Specs use `exact_euros` / `exact_fractional`, `factor`, or `percent` per member. Exact rows first; remainder split by factor or percent.
 - List expenses: `GET …/list_items`.
 - Settled expenses usually cannot be updated or deleted.
 - Nickname invite creates an anonymous member and an invite link. It does not send email by itself.

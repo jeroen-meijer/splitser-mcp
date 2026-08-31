@@ -11,6 +11,7 @@ from .config import SplitserConfig
 from .errors import SplitserAuthError, SplitserError
 from .money import euros_to_fractional, money_dict
 from .session import CookieStore
+from .shares import build_equal_shares, build_percent_shares, build_shares_attributes
 
 OTHER_CATEGORY = {"id": 999999999, "category_source": "auto"}
 
@@ -235,7 +236,7 @@ class SplitserClient:
         amount_euros: str | float | None = None,
         payed_by_member_id: str,
         payed_on: str,
-        member_shares: list[dict[str, Any]] | None = None,
+        shares: list[dict[str, Any]] | None = None,
         split_member_ids: list[str] | None = None,
         split_type: Literal["equal", "percent"] = "equal",
         percents: list[float] | None = None,
@@ -248,10 +249,12 @@ class SplitserClient:
                 raise ValueError("Provide amount_fractional or amount_euros")
             fractional = euros_to_fractional(amount_euros)
 
-        shares_attributes = member_shares or self._build_shares_attributes(
+        shares_attributes = self._resolve_shares(
             total_fractional=fractional,
             currency=currency,
-            split_member_ids=split_member_ids or [payed_by_member_id],
+            shares=shares,
+            split_member_ids=split_member_ids,
+            payed_by_member_id=payed_by_member_id,
             split_type=split_type,
             percents=percents,
         )
@@ -286,6 +289,11 @@ class SplitserClient:
         shares: list[dict[str, Any]],
         currency: str = "EUR",
     ) -> dict[str, Any]:
+        resolved = build_shares_attributes(
+            total_fractional=amount_fractional,
+            currency=currency,
+            shares=shares,
+        )
         payload = {
             "expense": {
                 "id": expense_id,
@@ -296,7 +304,7 @@ class SplitserClient:
                 "source_amount": money_dict(amount_fractional, currency),
                 "amount": money_dict(amount_fractional, currency),
                 "exchange_rate": 1,
-                "shares": shares,
+                "shares": resolved,
             }
         }
         return await self._request("PUT", f"/api/expenses/{expense_id}", json=payload)
@@ -333,51 +341,34 @@ class SplitserClient:
         )
 
     @staticmethod
-    def _build_shares_attributes(
+    def _resolve_shares(
         *,
         total_fractional: int,
         currency: str,
-        split_member_ids: list[str],
+        shares: list[dict[str, Any]] | None,
+        split_member_ids: list[str] | None,
+        payed_by_member_id: str,
         split_type: Literal["equal", "percent"],
         percents: list[float] | None,
     ) -> list[dict[str, Any]]:
-        if not split_member_ids:
-            raise ValueError("split_member_ids must not be empty")
-
-        if split_type == "percent":
-            if not percents or len(percents) != len(split_member_ids):
-                raise ValueError("percents must match split_member_ids for percent splits")
-            shares: list[dict[str, Any]] = []
-            allocated = 0
-            for index, (member_id, percent) in enumerate(
-                zip(split_member_ids, percents, strict=True)
-            ):
-                if index == len(split_member_ids) - 1:
-                    share_amount = total_fractional - allocated
-                else:
-                    share_amount = round(total_fractional * percent)
-                    allocated += share_amount
-                shares.append(
-                    {
-                        "id": member_id,
-                        "member_id": member_id,
-                        "meta": {"type": "percent", "multiplier": percent},
-                        "source_amount": money_dict(share_amount, currency),
-                    }
-                )
-            return shares
-
-        count = len(split_member_ids)
-        base, remainder = divmod(total_fractional, count)
-        shares = []
-        for index, member_id in enumerate(split_member_ids):
-            share_amount = base + (1 if index < remainder else 0)
-            shares.append(
-                {
-                    "id": member_id,
-                    "member_id": member_id,
-                    "meta": {"type": "factor", "multiplier": 1},
-                    "source_amount": money_dict(share_amount, currency),
-                }
+        if shares is not None:
+            return build_shares_attributes(
+                total_fractional=total_fractional,
+                currency=currency,
+                shares=shares,
             )
-        return shares
+        members = split_member_ids or [payed_by_member_id]
+        if split_type == "percent":
+            if not percents:
+                raise ValueError("percents required for percent splits")
+            return build_percent_shares(
+                total_fractional=total_fractional,
+                currency=currency,
+                member_ids=members,
+                percents=percents,
+            )
+        return build_equal_shares(
+            total_fractional=total_fractional,
+            currency=currency,
+            member_ids=members,
+        )

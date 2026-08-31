@@ -77,7 +77,7 @@ All return JSON strings.
 | --- | --- |
 | `splitser_list_expenses` | List expenses |
 | `splitser_get_expense` | One expense |
-| `splitser_create_expense` | Create (`amount_euros` or `amount_fractional`) |
+| `splitser_create_expense` | Create (`amount_euros` or `amount_fractional`; optional `shares`) |
 | `splitser_update_expense` | Update (needs `shares_json`) |
 | `splitser_delete_expense` | Delete |
 | `splitser_search_categories` | Category by text |
@@ -94,6 +94,18 @@ All return JSON strings.
 | `splitser_create_settle` | Settle a list |
 
 Amounts: fractional cents (`1234` = EUR 12.34). On create/update you can pass `amount_euros` instead.
+
+`shares` / `shares_json` rows (create and update):
+
+```json
+[
+  {"member_id": "…", "exact_euros": "5.00"},
+  {"member_id": "…", "factor": 2},
+  {"member_id": "…", "factor": 1}
+]
+```
+
+Exact amounts first; remainder split by `factor` or `percent`. Or omit `shares` and use `split_member_ids` + `split_type` for a simple equal/percent split.
 
 ## Out of scope
 

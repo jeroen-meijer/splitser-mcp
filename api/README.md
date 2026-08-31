@@ -56,6 +56,8 @@ asyncio.run(main())
 
 ### Create an expense
 
+Equal split:
+
 ```python
 await client.create_expense(
     list_id="…",
@@ -66,6 +68,27 @@ await client.create_expense(
     split_member_ids=["…", "…"],
 )
 ```
+
+Fixed amounts plus share remainder (rest split by factor weights):
+
+```python
+await client.create_expense(
+    list_id="…",
+    name="Dinner",
+    payed_by_member_id="…",
+    payed_on="2026-08-31",
+    amount_euros="12.34",
+    shares=[
+        {"member_id": "…", "exact_euros": "5.00"},
+        {"member_id": "…", "exact_euros": "2.50"},
+        {"member_id": "…", "factor": 2},
+        {"member_id": "…", "factor": 1},
+    ],
+)
+```
+
+Each share row uses exactly one of `exact_euros`, `exact_fractional`, `factor`, or `percent`.
+Exact rows are fixed; the leftover is split by `factor` weights or `percent` of the remainder.
 
 ## Amounts
 
